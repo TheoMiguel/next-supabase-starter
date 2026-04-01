@@ -1,109 +1,94 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+# Agency Boilerplate — Next.js + Supabase
 
-<p align="center">
- The fastest way to build apps with Next.js and Supabase
-</p>
+Boilerplate base para proyectos B2B de la agencia. Incluye auth, RBAC, back office y CI/CD listos para extender.
 
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
-</p>
-<br/>
+**Stack:** Next.js 16 (App Router) · Supabase · Vercel · shadcn/ui · Resend
 
-## Features
+## Setup inicial
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Proxy
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+### 1. Variables de entorno
 
-## Demo
+Hay dos archivos de entorno según dónde corre la base de datos:
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+```bash
+cp .env.example .env.local   # para desarrollo local (Supabase CLI + Docker)
+cp .env.example .env.cloud   # para apuntar a Supabase cloud
+```
 
-## Deploy to Vercel
+Ambos siguen la misma estructura. Completar con las keys correspondientes:
 
-Vercel deployment will guide you through creating a Supabase account and project.
+- `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` → Dashboard Supabase → Settings → API
+- `SUPABASE_SERVICE_ROLE_KEY` → Dashboard Supabase → Settings → API → service_role
+- `RESEND_API_KEY` → resend.com/api-keys
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+Para `.env.local`, las keys locales las imprime `supabase start` al terminar.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+### 2. Desarrollo local (recomendado)
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+Requiere [Supabase CLI](https://supabase.com/docs/guides/cli) y Docker.
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+```bash
+npm install
 
-## Clone and run locally
+# Primera vez: aplicar migrations y crear usuario admin de desarrollo
+supabase db reset   # crea admin@boilerplate.local / Admin1234!
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+# Levantar todo (Supabase + Next.js)
+npm run dev:local
+```
 
-2. Create a Next.js app using the Supabase Starter template npx command
+`dev:local` corre `supabase start` (si ya está corriendo es instantáneo) y luego `next dev` con `.env.local`.
 
-   ```bash
-   npx create-next-app --example with-supabase with-supabase-app
-   ```
+### 3. Desarrollo contra Supabase cloud
 
-   ```bash
-   yarn create next-app --example with-supabase with-supabase-app
-   ```
+```bash
+npm run dev:cloud   # usa .env.cloud
+```
 
-   ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
-   ```
+---
 
-3. Use `cd` to change into the app's directory
+## Comandos de desarrollo
 
-   ```bash
-   cd with-supabase-app
-   ```
+| Comando                          | Descripción                                            |
+| -------------------------------- | ------------------------------------------------------ |
+| `npm run dev:local`              | Levanta Supabase local + Next.js                       |
+| `npm run dev:cloud`              | Next.js apuntando a Supabase cloud                     |
+| `npm run dev`                    | Next.js con `.env.local` (asume Supabase ya corriendo) |
+| `supabase db reset`              | Borra y recrea la DB local con migrations + seed       |
+| `supabase db diff --file nombre` | Genera migración a partir de cambios en el schema      |
 
-4. Rename `.env.example` to `.env.local` and update the following:
+---
 
-  ```env
-  NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=[INSERT SUPABASE PROJECT API PUBLISHABLE OR ANON KEY]
-  ```
-  > [!NOTE]
-  > This example uses `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, which refers to Supabase's new **publishable** key format.
-  > Both legacy **anon** keys and new **publishable** keys can be used with this variable name during the transition period. Supabase's dashboard may show `NEXT_PUBLIC_SUPABASE_ANON_KEY`; its value can be used in this example.
-  > See the [full announcement](https://github.com/orgs/supabase/discussions/29260) for more information.
+## Crear el primer SuperAdmin
 
-  Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
+```bash
+# Local
+npm run create-admin:local
 
-5. You can now run the Next.js local development server:
+# Cloud (producción / staging)
+npm run create-admin:cloud
 
-   ```bash
-   npm run dev
-   ```
+# Con variables de entorno (no interactivo — útil para agentes)
+ADMIN_EMAIL=admin@empresa.com ADMIN_PASSWORD=Pass1234! ADMIN_FULL_NAME="Juan Pérez" npm run create-admin:cloud
+```
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+El script crea el usuario directamente via Supabase Admin API (no requiere verificación de email) y el trigger de la DB asigna el rol `super_admin` automáticamente.
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+---
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+## Nuevo proyecto desde este boilerplate
 
-## Feedback and issues
+1. Clonar el repo y renombrar referencias a "boilerplate" en `CLAUDE.md`, `package.json` y `src/app/layout.tsx`
+2. Crear proyecto en Supabase y Vercel
+3. Configurar `.env.local` (local) y `.env.cloud` (cloud)
+4. Configurar SMTP en Supabase para usar Resend: Dashboard → Auth → SMTP Settings
+5. Agregar secrets al repositorio de GitHub (ver `CLAUDE.md` → CI/CD)
+6. Generar types actualizados: `supabase gen types typescript --linked > src/lib/supabase/database.types.ts`
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+## Agregar un nuevo rol
 
-## More Supabase examples
-
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+1. Crear migración: `supabase db diff --file add_nuevo_rol`
+2. En el SQL: `ALTER TYPE user_role ADD VALUE 'nuevo_rol';`
+3. Regenerar types: `supabase gen types typescript --local > src/lib/supabase/database.types.ts`
+4. Actualizar RLS policies en Supabase si corresponde
+5. Usar `requireRole('nuevo_rol')` en los layouts de las rutas protegidas
