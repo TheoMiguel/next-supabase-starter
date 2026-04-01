@@ -2,6 +2,96 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+---
+
+## Partir un proyecto desde este template
+
+Esta sección es para cuando este repo se clona como base de un proyecto nuevo.
+Ejecutar los pasos en orden. Todos son realizables por un agente.
+
+### Paso 1 — Renombrar referencias al template
+
+Reemplazar `"Boilerplate Agencia"` y `"boilerplate"` con el nombre real del proyecto en:
+
+- `src/app/layout.tsx` → `metadata.title` y `metadata.description`
+- `package.json` → campo `"name"` (si se agrega)
+- `README.md` → título y descripción
+- `supabase/config.toml` → `project_id`
+
+### Paso 2 — Cambiar el remote de git
+
+El repo fue clonado desde el template. Apuntarlo al nuevo remote del proyecto:
+
+```bash
+git remote remove origin
+git remote add origin https://github.com/ORG/NUEVO-REPO.git
+git push -u origin main
+```
+
+### Paso 3 — Crear proyecto en Supabase
+
+1. Crear proyecto en https://supabase.com/dashboard
+2. Copiar las keys desde Settings → API
+3. Crear `.env.local` y `.env.cloud` desde `.env.example` con las keys reales
+4. Aplicar el schema inicial:
+   ```bash
+   supabase link --project-ref TU_PROJECT_REF
+   supabase db push
+   ```
+5. Regenerar types:
+   ```bash
+   supabase gen types typescript --linked > src/lib/supabase/database.types.ts
+   ```
+6. Configurar SMTP para usar Resend: Dashboard → Auth → SMTP Settings
+
+### Paso 4 — Crear el primer SuperAdmin
+
+```bash
+# No interactivo (recomendado para agentes):
+ADMIN_EMAIL=admin@cliente.com ADMIN_PASSWORD=Password1234! ADMIN_FULL_NAME="Nombre Admin" npm run create-admin:cloud
+
+# Interactivo:
+npm run create-admin:cloud
+```
+
+### Paso 5 — Conectar Vercel
+
+```bash
+vercel link        # vincula el repo al proyecto de Vercel
+vercel env pull    # opcional: baja las env vars de Vercel a .env.local
+```
+
+O desde el dashboard de Vercel: New Project → Import Git Repository.
+
+### Paso 6 — Configurar secrets de GitHub
+
+Ir a: GitHub repo → Settings → Secrets and variables → Actions → New repository secret
+
+Secrets requeridos para que el CI/CD funcione:
+
+| Secret                                 | Dónde obtenerlo                         |
+| -------------------------------------- | --------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Supabase → Settings → API               |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase → Settings → API               |
+| `SUPABASE_SERVICE_ROLE_KEY`            | Supabase → Settings → API               |
+| `RESEND_API_KEY`                       | resend.com/api-keys                     |
+| `VERCEL_TOKEN`                         | vercel.com/account/tokens               |
+| `VERCEL_ORG_ID`                        | `vercel inspect` o dashboard → Settings |
+| `VERCEL_PROJECT_ID`                    | `vercel inspect` o dashboard → Settings |
+
+> Sin estos secrets el workflow `deploy.yml` se saltea automáticamente (no falla).
+> El workflow `ci.yml` (typecheck, lint, tests) siempre corre con valores placeholder si los secrets no están.
+
+### Paso 7 — Verificar
+
+```bash
+npm run typecheck
+npm run test
+npm run dev:local   # login con admin@cliente.com
+```
+
+---
+
 ## Commands
 
 ```bash
@@ -29,6 +119,8 @@ supabase db reset    # Aplicar migrations + seed desde cero
 supabase db diff     # Generar nueva migración a partir de cambios en el schema
 supabase gen types typescript --local > src/lib/supabase/database.types.ts
 ```
+
+---
 
 ## Architecture
 
@@ -123,7 +215,5 @@ Crear nuevas migraciones con `supabase db diff --file nombre_migracion` o escrib
 
 ### CI/CD
 
-- `.github/workflows/ci.yml`: corre en cada PR → typecheck + lint + vitest
-- `.github/workflows/deploy.yml`: corre en push a `main` → E2E Playwright → deploy a Vercel
-
-Secrets de GitHub requeridos: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`.
+- `.github/workflows/ci.yml`: corre en cada PR → typecheck + lint + vitest. Usa placeholders si los secrets no están configurados (compatible con el template sin infraestructura).
+- `.github/workflows/deploy.yml`: corre en push a `main` → E2E Playwright → deploy a Vercel. **Se saltea automáticamente si `VERCEL_TOKEN` no está configurado.**

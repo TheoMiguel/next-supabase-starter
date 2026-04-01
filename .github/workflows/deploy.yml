@@ -4,10 +4,15 @@ on:
   push:
     branches: [main]
 
+# Este workflow solo corre si los secrets de Vercel y Supabase están configurados.
+# En el template (sin secrets) los jobs se saltean automáticamente.
+# Ver CLAUDE.md → "Partir un proyecto desde el template" para instrucciones de setup.
+
 jobs:
   e2e:
     name: E2E Tests
     runs-on: ubuntu-latest
+    if: ${{ secrets.VERCEL_TOKEN != '' }}
 
     steps:
       - name: Checkout
@@ -55,6 +60,7 @@ jobs:
     name: Deploy to Vercel
     runs-on: ubuntu-latest
     needs: e2e
+    if: ${{ secrets.VERCEL_TOKEN != '' }}
 
     steps:
       - name: Checkout
