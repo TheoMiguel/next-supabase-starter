@@ -22,6 +22,25 @@ create table profiles (
 );
 
 -- ----------------------------------------------------------------
+-- Función: verificar si el usuario actual es super_admin
+-- SECURITY DEFINER para bypassear RLS y evitar recursión infinita
+-- cuando las policies de profiles necesitan consultar profiles
+-- ----------------------------------------------------------------
+create or replace function is_super_admin()
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  return exists (
+    select 1 from profiles
+    where id = auth.uid() and role = 'super_admin' and is_active = true
+  );
+end;
+$$;
+
+-- ----------------------------------------------------------------
 -- RLS (Row Level Security)
 -- ----------------------------------------------------------------
 alter table profiles enable row level security;
@@ -34,22 +53,12 @@ create policy "Usuarios pueden ver su propio perfil"
 -- SuperAdmin puede ver todos los perfiles
 create policy "SuperAdmin puede ver todos los perfiles"
   on profiles for select
-  using (
-    exists (
-      select 1 from profiles
-      where id = auth.uid() and role = 'super_admin' and is_active = true
-    )
-  );
+  using (is_super_admin());
 
 -- SuperAdmin puede actualizar cualquier perfil
 create policy "SuperAdmin puede actualizar perfiles"
   on profiles for update
-  using (
-    exists (
-      select 1 from profiles
-      where id = auth.uid() and role = 'super_admin' and is_active = true
-    )
-  );
+  using (is_super_admin());
 
 -- ----------------------------------------------------------------
 -- Función: auto-crear perfil al registrar usuario
