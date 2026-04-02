@@ -1,7 +1,16 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getUser } from "@/features/auth/lib/auth-utils";
 
-export default async function HomePage() {
+async function RootRedirect() {
   const user = await getUser();
   redirect(user ? "/admin" : "/login");
+}
+
+export default function HomePage() {
+  return (
+    <Suspense>
+      <RootRedirect />
+    </Suspense>
+  );
 }
