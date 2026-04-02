@@ -46,13 +46,13 @@ export function AppSidebar({ profile }: AppSidebarProps) {
   const pathname = usePathname();
 
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarHeader className="border-b p-4">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-lg">
             <span className="text-sm font-bold">B</span>
           </div>
-          <span className="font-semibold">Boilerplate</span>
+          <span className="font-semibold group-data-[collapsible=icon]:hidden">Boilerplate</span>
         </div>
       </SidebarHeader>
 
@@ -63,7 +63,7 @@ export function AppSidebar({ profile }: AppSidebarProps) {
             <SidebarMenu>
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild isActive={pathname === item.href}>
+                  <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.title}>
                     <Link href={item.href}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
@@ -83,7 +83,7 @@ export function AppSidebar({ profile }: AppSidebarProps) {
               {profile.full_name?.charAt(0)?.toUpperCase() ?? profile.email.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-col gap-0.5 overflow-hidden">
+          <div className="flex flex-col gap-0.5 overflow-hidden group-data-[collapsible=icon]:hidden">
             <span className="truncate text-sm font-medium">
               {profile.full_name ?? profile.email}
             </span>
