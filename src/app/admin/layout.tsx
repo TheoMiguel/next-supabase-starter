@@ -9,7 +9,7 @@ async function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar profile={profile} />
-      <div className="flex min-h-svh flex-1 flex-col md:ml-[var(--sidebar-width)]">{children}</div>
+      <div className="flex min-h-svh flex-1 flex-col">{children}</div>
     </SidebarProvider>
   );
 }
