@@ -30,6 +30,31 @@ git push -u origin main
 
 ### Paso 3 — Crear proyecto en Supabase
 
+#### Opción A — Local (desarrollo sin cloud)
+
+1. `npm install`
+2. Levantar Supabase local (Docker):
+   ```bash
+   npx supabase start
+   ```
+3. Crear `.env.local` a partir de `.env.example` con los valores que imprime `supabase start`:
+   - `NEXT_PUBLIC_SUPABASE_URL` → Project URL (ej. `http://127.0.0.1:54321`)
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` → Publishable key
+   - `SUPABASE_SERVICE_ROLE_KEY` → Secret key
+   - `RESEND_API_KEY` → placeholder (`re_placeholder_local`)
+4. Verificar que las migrations estén aplicadas:
+   ```bash
+   npx supabase db push --local
+   ```
+5. Regenerar types:
+   ```bash
+   npx supabase gen types typescript --local 2>/dev/null > src/lib/supabase/database.types.ts
+   ```
+
+> **Nota:** `supabase start` ya aplica las migrations automáticamente. El paso 4 es solo para verificar.
+
+#### Opción B — Cloud
+
 1. Crear proyecto en https://supabase.com/dashboard
 2. Copiar las keys desde Settings → API
 3. Crear `.env.local` y `.env.cloud` desde `.env.example` con las keys reales
@@ -40,18 +65,21 @@ git push -u origin main
    ```
 5. Regenerar types:
    ```bash
-   supabase gen types typescript --linked > src/lib/supabase/database.types.ts
+   supabase gen types typescript --linked 2>/dev/null > src/lib/supabase/database.types.ts
    ```
 6. Configurar SMTP para usar Resend: Dashboard → Auth → SMTP Settings
 
 ### Paso 4 — Crear el primer SuperAdmin
 
 ```bash
-# No interactivo (recomendado para agentes):
+# Local — no interactivo (recomendado para agentes):
+ADMIN_EMAIL=admin@cliente.com ADMIN_PASSWORD=Password1234! ADMIN_FULL_NAME="Nombre Admin" npm run create-admin:local
+
+# Cloud — no interactivo:
 ADMIN_EMAIL=admin@cliente.com ADMIN_PASSWORD=Password1234! ADMIN_FULL_NAME="Nombre Admin" npm run create-admin:cloud
 
 # Interactivo:
-npm run create-admin:cloud
+npm run create-admin:local   # o :cloud
 ```
 
 ### Paso 5 — Conectar Vercel
@@ -117,7 +145,7 @@ npm run create-admin:cloud   # interactivo, apunta a cloud
 supabase start       # Levantar Supabase local (Docker) — se llama automáticamente en dev:local
 supabase db reset    # Aplicar migrations + seed desde cero
 supabase db diff     # Generar nueva migración a partir de cambios en el schema
-supabase gen types typescript --local > src/lib/supabase/database.types.ts
+supabase gen types typescript --local 2>/dev/null > src/lib/supabase/database.types.ts
 ```
 
 ---
